@@ -15,7 +15,7 @@ public class StartGenerate : MonoBehaviour
     {
         if (Input.anyKeyDown)
         {
-            UnityEngine.SceneManagement.SceneManager.LoadScene("scnGanarateGlusting");
+            UnityEngine.SceneManagement.SceneManager.LoadScene("scnGenerateClusting");
         }
     }
 }
