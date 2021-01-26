@@ -578,6 +578,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   boxObjPrefab: {fileID: 2559944079222585009, guid: 768440f0e34e23b4891655e295482cdf,
     type: 3}
-  boxesObj: {fileID: 1449068416}
-  span: 1
+  textObjPrefab: {fileID: 7598572078152464070, guid: 11982e1b2d4017d4e9a8c3c35f2da28e,
+    type: 3}
+  boxesParentObj: {fileID: 1449068416}
+  span: 0.5
+  isDispCluster: 1
   mapCellSize: {x: 11, y: 11}
