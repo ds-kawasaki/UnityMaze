@@ -11,27 +11,27 @@ public class ClustringMapGenerator : MonoBehaviour
     /// <summary>
     /// 壁のプレハブ 
     /// </summary>
-    public GameObject boxObjPrefab;
+    [SerializeField] private GameObject boxObjPrefab;
     /// <summary>
     /// クラスタ文字のプレハブ
     /// </summary>
-    public GameObject textObjPrefab;
+    [SerializeField] private GameObject textObjPrefab;
     /// <summary>
     /// 壁配置の基準オブジェクト
     /// </summary>
-    public GameObject boxesParentObj;
+    [SerializeField] private GameObject boxesParentObj;
     /// <summary>
     /// 生成間隔
     /// </summary>
-    public float span = 1.0f;
+    [SerializeField] private float span = 1.0f;
     /// <summary>
     /// クラスタ番号表示フラグ
     /// </summary>
-    public bool isDispCluster = true;
+    [SerializeField] private bool isDispCluster = true;
     /// <summary>
     /// 壁升目のサイズ（最外周の壁は含まない）
     /// </summary>
-    public Vector2Int mapCellSize;
+    [SerializeField] private Vector2Int mapCellSize;
     /// <summary>
     /// クラスタ升目のサイズ
     /// </summary>
@@ -60,51 +60,51 @@ public class ClustringMapGenerator : MonoBehaviour
 
     private void Awake()
     {
-        Init(mapCellSize);
+        Init(this.mapCellSize);
 
         // 壁升目の生成
-        boxes = new List<GameObject>(mapCellSize.x * mapCellSize.y);
-        for (int y = 0; y < mapCellSize.y; ++y)
+        this.boxes = new List<GameObject>(this.mapCellSize.x * this.mapCellSize.y);
+        for (int y = 0; y < this.mapCellSize.y; ++y)
         {
-            for (int x = 0; x < mapCellSize.x; ++x)
+            for (int x = 0; x < this.mapCellSize.x; ++x)
             {
-                switch(cells[x + y * mapCellSize.x])
+                switch(this.cells[x + y * this.mapCellSize.x])
                 {
                     case CELL_TYPE_WALL:
                     case CELL_TYPE_TMP_WALL:
-                        GameObject g = Instantiate(boxObjPrefab, boxesParentObj.transform);
+                        GameObject g = Instantiate(this.boxObjPrefab, this.boxesParentObj.transform);
                         g.transform.position = new Vector3(
-                            (mapCellSize.x / 2) * -1.0f + x,
+                            (this.mapCellSize.x / 2) * -1.0f + x,
                             0.5f,
-                            (mapCellSize.y / 2) * -1.0f + y
+                            (this.mapCellSize.y / 2) * -1.0f + y
                             );
-                        boxes.Add(g);
+                        this.boxes.Add(g);
                         break;
 
                     case CELL_TYPE_YUKA:
-                        boxes.Add(null);
+                        this.boxes.Add(null);
                         break;
 
                     default:
-                        if (isDispCluster)
+                        if (this.isDispCluster)
                         {
-                            GameObject g2 = Instantiate(textObjPrefab, boxesParentObj.transform);
+                            GameObject g2 = Instantiate(this.textObjPrefab, this.boxesParentObj.transform);
                             g2.transform.position = new Vector3(
-                                (mapCellSize.x / 2) * -1.0f + x,
+                                (this.mapCellSize.x / 2) * -1.0f + x,
                                 1.0f,
-                                (mapCellSize.y / 2) * -1.0f + y
+                                (this.mapCellSize.y / 2) * -1.0f + y
                                 );
                             TextMesh t = g2.GetComponent<TextMesh>();
                             if (t != null)
                             {
-                                int n = cells[x + y * mapCellSize.x] - CELL_TYPE_CLUSTER_OFFSET;
+                                int n = this.cells[x + y * this.mapCellSize.x] - CELL_TYPE_CLUSTER_OFFSET;
                                 t.text = n.ToString();
                             }
-                            boxes.Add(g2);
+                            this.boxes.Add(g2);
                         }
                         else
                         {
-                            boxes.Add(null);
+                            this.boxes.Add(null);
                         }
                         break;
 
@@ -113,36 +113,36 @@ public class ClustringMapGenerator : MonoBehaviour
         }
 
         // 最外周の壁を追加 
-        for (int i = 0; i < mapCellSize.y + 2; ++i)
+        for (int i = 0; i < this.mapCellSize.y + 2; ++i)
         {
-            GameObject g = Instantiate(boxObjPrefab, boxesParentObj.transform);
+            GameObject g = Instantiate(this.boxObjPrefab, this.boxesParentObj.transform);
             g.transform.position = new Vector3(
-                ((mapCellSize.x+1) / 2) * -1.0f,
+                ((this.mapCellSize.x+1) / 2) * -1.0f,
                 0.5f,
-                ((mapCellSize.y+1) / 2) * -1.0f + i
+                ((this.mapCellSize.y+1) / 2) * -1.0f + i
                 );
 
-            GameObject g2 = Instantiate(boxObjPrefab, boxesParentObj.transform);
+            GameObject g2 = Instantiate(this.boxObjPrefab, this.boxesParentObj.transform);
             g2.transform.position = new Vector3(
-                ((mapCellSize.x + 1) / 2) * 1.0f,
+                ((this.mapCellSize.x + 1) / 2) * 1.0f,
                 0.5f,
-                ((mapCellSize.y + 1) / 2) * -1.0f + i
+                ((this.mapCellSize.y + 1) / 2) * -1.0f + i
                 );
         }
-        for (int i = 0; i < mapCellSize.x; ++i)
+        for (int i = 0; i < this.mapCellSize.x; ++i)
         {
-            GameObject g = Instantiate(boxObjPrefab, boxesParentObj.transform);
+            GameObject g = Instantiate(this.boxObjPrefab, this.boxesParentObj.transform);
             g.transform.position = new Vector3(
-                (mapCellSize.x / 2) * -1.0f + i,
+                (this.mapCellSize.x / 2) * -1.0f + i,
                 0.5f,
-                ((mapCellSize.y + 1) / 2) * -1.0f
+                ((this.mapCellSize.y + 1) / 2) * -1.0f
                 );
 
-            GameObject g2 = Instantiate(boxObjPrefab, boxesParentObj.transform);
+            GameObject g2 = Instantiate(this.boxObjPrefab, this.boxesParentObj.transform);
             g2.transform.position = new Vector3(
-                (mapCellSize.x / 2) * -1.0f + i,
+                (this.mapCellSize.x / 2) * -1.0f + i,
                 0.5f,
-                ((mapCellSize.y + 1) / 2) * 1.0f
+                ((this.mapCellSize.y + 1) / 2) * 1.0f
                 );
         }
     }
@@ -161,44 +161,44 @@ public class ClustringMapGenerator : MonoBehaviour
 
     private void Init(Vector2Int size)
     {
-        mapCellSize = size;
+        this.mapCellSize = size;
 
         // 升目は奇数
-        if ((mapCellSize.x & 1) == 0) { mapCellSize.x--; }
-        if ((mapCellSize.y & 1) == 0) { mapCellSize.y--; }
+        if ((this.mapCellSize.x & 1) == 0) { this.mapCellSize.x--; }
+        if ((this.mapCellSize.y & 1) == 0) { this.mapCellSize.y--; }
 
-        clusterSize.x = (mapCellSize.x + 1) / 2;
-        clusterSize.y = (mapCellSize.y + 1) / 2;
+        this.clusterSize.x = (this.mapCellSize.x + 1) / 2;
+        this.clusterSize.y = (this.mapCellSize.y + 1) / 2;
 
 
-        int cellNum = mapCellSize.x * mapCellSize.y;
-        cells = new List<int>(cellNum);
+        int cellNum = this.mapCellSize.x * this.mapCellSize.y;
+        this.cells = new List<int>(cellNum);
         for (int i=0; i<cellNum; ++i)
         {
-            cells.Add(CELL_TYPE_WALL);
+            this.cells.Add(CELL_TYPE_WALL);
         }
 
         // 各クラスタ番号代入
-        int clusterNum = clusterSize.x * clusterSize.y;
+        int clusterNum = this.clusterSize.x * this.clusterSize.y;
         for (int i = 0; i < clusterNum; ++i)
         {
-            cells[GetCellFromCluster(i)] = i + CELL_TYPE_CLUSTER_OFFSET;
+            this.cells[GetCellFromCluster(i)] = i + CELL_TYPE_CLUSTER_OFFSET;
         }
 
         // クラスタ間の壁
-        int wallNum = (mapCellSize.x * mapCellSize.y - 1) / 2;
+        int wallNum = (this.mapCellSize.x * this.mapCellSize.y - 1) / 2;
         for (int i = 0; i < wallNum; ++i)
         {
-            cells[GetCellFromWall(i)] = CELL_TYPE_TMP_WALL;
+            this.cells[GetCellFromWall(i)] = CELL_TYPE_TMP_WALL;
         }
         // クラスタ間の壁をランダムに壊すけど、すべてをなめるので配列にしておく
-        randWalls = Enumerable.Range(0, wallNum)
+        this.randWalls = Enumerable.Range(0, wallNum)
             .Select(i => i)
             .OrderBy(i => System.Guid.NewGuid())
             .ToList<int>();
         
         //DebugLogCells();
-        //Debug.Log(string.Join(", ", randWalls.Select(i => i.ToString())));
+        //Debug.Log(string.Join(", ", this.randWalls.Select(i => i.ToString())));
     }
 
 
@@ -206,11 +206,11 @@ public class ClustringMapGenerator : MonoBehaviour
     {
         yield return new WaitForSeconds(2.0f);
 
-        foreach (var w in randWalls)
+        foreach (var w in this.randWalls)
         {
             var (p1, p2) = GetClusterJoinWall(w);
-            var c1 = cells[GetCellFromCluster(p1)];
-            var c2 = cells[GetCellFromCluster(p2)];
+            var c1 = this.cells[GetCellFromCluster(p1)];
+            var c2 = this.cells[GetCellFromCluster(p2)];
 
             //Debug.Log(string.Format("w:{0} ({1}:{2})({3}:{4}) {5}:{6}", w, p1.x, p1.y, p2.x, p2.y, c1, c2));
 
@@ -221,21 +221,21 @@ public class ClustringMapGenerator : MonoBehaviour
             }
 
             int wc = GetCellFromWall(w);
-            //Debug.Log(string.Format("wc:{0} cell:{1}", wc, cells[wc]));
-            if (cells[wc] == CELL_TYPE_TMP_WALL)
+            //Debug.Log(string.Format("wc:{0} cell:{1}", wc, this.cells[wc]));
+            if (this.cells[wc] == CELL_TYPE_TMP_WALL)
             {
-                cells[wc] = CELL_TYPE_YUKA;
+                this.cells[wc] = CELL_TYPE_YUKA;
                 // クラスタをつなぐ
                 TuneCluster(c1, c2);
 
-                if (boxes[wc] != null)
+                if (this.boxes[wc] != null)
                 {
-                    StartCoroutine(DeleteBox(boxes[wc]));
-                    boxes[wc] = null;
+                    StartCoroutine(DeleteBox(this.boxes[wc]));
+                    this.boxes[wc] = null;
                 }
             }
 
-            yield return new WaitForSeconds(span);
+            yield return new WaitForSeconds(this.span);
         }
 
         Debug.Log("End");
@@ -273,7 +273,38 @@ public class ClustringMapGenerator : MonoBehaviour
             var mazeMgr = obj.GetComponent<MazeManager>();
             if (mazeMgr != null)
             {
-                mazeMgr.mazeData = new MazeData(); //   データ受け渡し 
+                //   データ受け渡し 
+                var mazeData = new MazeData(this.mapCellSize);
+                for (int y = 0; y < this.mapCellSize.y; ++y)
+                {
+                    for (int x = 0; x < this.mapCellSize.x; ++x)
+                    {
+                        MazeData.CellType mCell = MazeData.CellType.Yuka;
+                        switch (this.cells[x + y * this.mapCellSize.x])
+                        {
+                            case CELL_TYPE_WALL:
+                            case CELL_TYPE_TMP_WALL:
+                                mCell = MazeData.CellType.Wall;
+                                break;
+
+                            case CELL_TYPE_START:
+                                mCell = MazeData.CellType.Start;
+                                break;
+
+                            case CELL_TYPE_GOAL:
+                                mCell = MazeData.CellType.Goal;
+                                break;
+
+                            default:
+                                mCell = MazeData.CellType.Yuka;
+                                break;
+                        }
+
+                        mazeData.SetCell(new Vector2Int(x, y), mCell);
+                    }
+                }
+
+                mazeMgr.mazeData = mazeData;
             }
 
         }
@@ -284,13 +315,13 @@ public class ClustringMapGenerator : MonoBehaviour
 
     private int GetCellFromCluster(int c)
     {
-        return ((c % clusterSize.x) * 2)
-            + (((c / clusterSize.x) * mapCellSize.x) * 2);
+        return ((c % this.clusterSize.x) * 2)
+            + (((c / this.clusterSize.x) * this.mapCellSize.x) * 2);
     }
     private int GetCellFromCluster(Vector2Int p)
     {
         return (p.x * 2)
-            + ((p.y * mapCellSize.x) * 2);
+            + ((p.y * this.mapCellSize.x) * 2);
     }
     private int GetCellFromWall(int w)
     {
@@ -298,7 +329,7 @@ public class ClustringMapGenerator : MonoBehaviour
     }
     private (Vector2Int, Vector2Int) GetClusterJoinWall(int w)
     {
-        int width = mapCellSize.x;
+        int width = this.mapCellSize.x;
         int y = w / width;
         int x = w % width;
 
@@ -325,17 +356,17 @@ public class ClustringMapGenerator : MonoBehaviour
 
         int n = src - CELL_TYPE_CLUSTER_OFFSET;
 
-        int clusterNum = clusterSize.x * clusterSize.y;
+        int clusterNum = this.clusterSize.x * this.clusterSize.y;
         for (int i = 0; i < clusterNum; ++i)
         {
             int cc = GetCellFromCluster(i);
-            if (cells[cc] == dst)
+            if (this.cells[cc] == dst)
             {
-                cells[cc] = src;
+                this.cells[cc] = src;
 
-                if (isDispCluster && boxes[cc] != null)
+                if (this.isDispCluster && this.boxes[cc] != null)
                 {
-                    TextMesh t = boxes[cc].GetComponent<TextMesh>();
+                    TextMesh t = this.boxes[cc].GetComponent<TextMesh>();
                     t.text = n.ToString();
                 }
             }
@@ -347,23 +378,23 @@ public class ClustringMapGenerator : MonoBehaviour
     {
 #if true
         string tmp = "==========================================\n";
-        for (int y = 0; y < mapCellSize.y; ++y)
+        for (int y = 0; y < this.mapCellSize.y; ++y)
         {
-            for (int x = 0; x < mapCellSize.x; ++x)
+            for (int x = 0; x < this.mapCellSize.x; ++x)
             {
-                tmp += string.Format("{0,2} ", cells[x + y * mapCellSize.x]);
+                tmp += string.Format("{0,2} ", this.cells[x + y * this.mapCellSize.x]);
             }
             tmp += "\n";
         }
         Debug.Log(tmp);
 #else
         Debug.Log("==========================================");
-        for (int y = 0; y < mapCellSize.y; ++y)
+        for (int y = 0; y < this.mapCellSize.y; ++y)
         {
             string tmp = "";
-            for (int x = 0; x < mapCellSize.x; ++x)
+            for (int x = 0; x < this.mapCellSize.x; ++x)
             {
-                tmp += string.Format("{0,2} ", cells[x + y * mapCellSize.x]);
+                tmp += string.Format("{0,2} ", this.cells[x + y * this.mapCellSize.x]);
             }
             Debug.Log(tmp);
         }
