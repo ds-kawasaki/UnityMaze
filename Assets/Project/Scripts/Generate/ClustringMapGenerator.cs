@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
+/// <summary>
+/// クラスタリング迷路生成
+/// </summary>
 public class ClustringMapGenerator : MonoBehaviour
 {
     /// <summary>
@@ -26,7 +29,7 @@ public class ClustringMapGenerator : MonoBehaviour
     /// </summary>
     public bool isDispCluster = true;
     /// <summary>
-    /// 壁升目のサイズ
+    /// 壁升目のサイズ（最外周の壁は含まない）
     /// </summary>
     public Vector2Int mapCellSize;
     /// <summary>
@@ -34,19 +37,15 @@ public class ClustringMapGenerator : MonoBehaviour
     /// </summary>
     private Vector2Int clusterSize;
     /// <summary>
-    /// 壊す壁の数
-    /// </summary>
-    private int wallNum;
-    /// <summary>
-    /// 壁升目の状態
+    /// 壁升目の状態（最外周の壁は含まない）
     /// </summary>
     private List<int> cells;
     /// <summary>
-    /// 壁インスタンス
+    /// 壁インスタンス（最外周の壁は含まない）
     /// </summary>
     private List<GameObject> boxes;
     /// <summary>
-    /// 壊す壁のランダム並び順
+    /// 壊す（可能性のある）壁のランダム並び順
     /// </summary>
     private List<int> randWalls;
 
@@ -63,7 +62,7 @@ public class ClustringMapGenerator : MonoBehaviour
     {
         Init(mapCellSize);
 
-
+        // 壁升目の生成
         boxes = new List<GameObject>(mapCellSize.x * mapCellSize.y);
         for (int y = 0; y < mapCellSize.y; ++y)
         {
@@ -113,6 +112,7 @@ public class ClustringMapGenerator : MonoBehaviour
             }
         }
 
+        // 最外周の壁を追加 
         for (int i = 0; i < mapCellSize.y + 2; ++i)
         {
             GameObject g = Instantiate(boxObjPrefab, boxesParentObj.transform);
@@ -169,7 +169,7 @@ public class ClustringMapGenerator : MonoBehaviour
 
         clusterSize.x = (mapCellSize.x + 1) / 2;
         clusterSize.y = (mapCellSize.y + 1) / 2;
-        wallNum = (mapCellSize.x * mapCellSize.y - 1) / 2;
+
 
         int cellNum = mapCellSize.x * mapCellSize.y;
         cells = new List<int>(cellNum);
@@ -178,25 +178,27 @@ public class ClustringMapGenerator : MonoBehaviour
             cells.Add(CELL_TYPE_WALL);
         }
 
+        // 各クラスタ番号代入
         int clusterNum = clusterSize.x * clusterSize.y;
         for (int i = 0; i < clusterNum; ++i)
         {
             cells[GetCellFromCluster(i)] = i + CELL_TYPE_CLUSTER_OFFSET;
         }
 
+        // クラスタ間の壁
+        int wallNum = (mapCellSize.x * mapCellSize.y - 1) / 2;
         for (int i = 0; i < wallNum; ++i)
         {
             cells[GetCellFromWall(i)] = CELL_TYPE_TMP_WALL;
         }
-
+        // クラスタ間の壁をランダムに壊すけど、すべてをなめるので配列にしておく
         randWalls = Enumerable.Range(0, wallNum)
             .Select(i => i)
             .OrderBy(i => System.Guid.NewGuid())
             .ToList<int>();
         
-        DebugLogCells();
-
-        Debug.Log(string.Join(", ", randWalls.Select(i => i.ToString())));
+        //DebugLogCells();
+        //Debug.Log(string.Join(", ", randWalls.Select(i => i.ToString())));
     }
 
 
@@ -237,23 +239,45 @@ public class ClustringMapGenerator : MonoBehaviour
         }
 
         Debug.Log("End");
+        UnityEngine.SceneManagement.SceneManager.sceneLoaded += MazeSceneLoaded;
+        UnityEngine.SceneManagement.SceneManager.LoadScene("scnMaze");
     }
 
     IEnumerator DeleteBox(GameObject g)
     {
-        float endTime = Time.time + 1.0f;
+        const float DURATION = 1.0f;
+
+        float startTime = Time.time;
         while (true)
         {
-            float diff = endTime - Time.time;
-            if (diff < 0) { break; }
-            //float rate = 1 - Mathf.Clamp01(diff / 1.0f);
+            float now = Time.time - startTime;
+            if (now > DURATION) { break; }
 
             g.transform.Translate(0.0f, -Time.deltaTime, 0.0f);
+
+            float nowScale = 1.0f + ((0.3f - 1.0f) * now / DURATION);
+            g.transform.localScale = new Vector3(nowScale, nowScale, nowScale);
 
             yield return null;
         }
 
         Destroy(g);
+    }
+
+
+    private void MazeSceneLoaded(UnityEngine.SceneManagement.Scene next, UnityEngine.SceneManagement.LoadSceneMode mode)
+    {
+        var obj = GameObject.FindWithTag("MazeManager");
+        if (obj != null)
+        {
+            var mazeMgr = obj.GetComponent<MazeManager>();
+            if (mazeMgr != null)
+            {
+                mazeMgr.mazeData = new MazeData(); //   データ受け渡し 
+            }
+
+        }
+        UnityEngine.SceneManagement.SceneManager.sceneLoaded -= MazeSceneLoaded;
     }
 
 
