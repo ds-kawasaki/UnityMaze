@@ -50,10 +50,13 @@ public class MazeData
 
     public CellType GetCell(Vector2Int pos)
     {
-        if (pos.x < 0) { pos.x = 0; }
-        if (pos.x >= this.Size.x) { pos.x = this.Size.x - 1; }
-        if (pos.y < 0) { pos.y = 0; }
-        if (pos.y >= this.Size.y) { pos.y = this.Size.y - 1; }
+        if (pos.x < 0
+            || pos.x >= this.Size.x
+            || pos.y < 0
+            || pos.y >= this.Size.y)
+        {
+            return CellType.Wall; 
+        }
 
         return this.cells[pos.x + pos.y * this.Size.x];
     }

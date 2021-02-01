@@ -7,7 +7,9 @@ public class MazeManager : MonoBehaviour
     public MazeData mazeData { set; get; }
 
     [SerializeField] private GameObject boxObjPrefab;
+    [SerializeField] private GameObject goalObjPrefab;
     [SerializeField] private GameObject boxesParentObj;
+    [SerializeField] private GameObject playerObj;
 
     private void Awake()
     {
@@ -19,9 +21,13 @@ public class MazeManager : MonoBehaviour
     {
         //MazeSceneLoadedはAwakeより後に呼ばれるので、こっちで初期化する
 
-        if (this.mazeData == null)
+        if (this.mazeData == null)  // Mazeシーン単体テスト用 
         {
             var mData = new MazeData(new Vector2Int(3, 3));
+            mData.SetCell(new Vector2Int(0, 0), MazeData.CellType.Start);
+            mData.SetCell(new Vector2Int(0, 2), MazeData.CellType.Goal);
+            mData.SetCell(new Vector2Int(0, 1), MazeData.CellType.Wall);
+            mData.SetCell(new Vector2Int(1, 1), MazeData.CellType.Wall);
             this.mazeData = mData;
         }
 
@@ -29,13 +35,35 @@ public class MazeManager : MonoBehaviour
         {
             for (int x = 0; x < this.mazeData.Size.x; ++x)
             {
+                GameObject g = null;
                 switch (this.mazeData.GetCell(new Vector2Int(x, y)))
                 {
                     case MazeData.CellType.Wall:
-                        GameObject g = Instantiate(this.boxObjPrefab, this.boxesParentObj.transform);
+                        g = Instantiate(this.boxObjPrefab, this.boxesParentObj.transform);
                         g.transform.position = new Vector3(
                             (this.mazeData.Size.x / 2) * -1.0f + x,
                             0.5f,
+                            (this.mazeData.Size.y / 2) * -1.0f + y
+                            );
+                        break;
+                    case MazeData.CellType.Start:
+                        g = this.playerObj;
+                        g.transform.position = new Vector3(
+                            (this.mazeData.Size.x / 2) * -1.0f + x,
+                            0.0f,
+                            (this.mazeData.Size.y / 2) * -1.0f + y
+                            );
+                        PlayerController plCtl = this.playerObj.GetComponent<PlayerController>();
+                        if (plCtl != null)
+                        {
+                            plCtl.Setup(this.mazeData, new Vector2Int(x, y));
+                        }
+                        break;
+                    case MazeData.CellType.Goal:
+                        g = Instantiate(this.goalObjPrefab, this.boxesParentObj.transform);
+                        g.transform.position = new Vector3(
+                            (this.mazeData.Size.x / 2) * -1.0f + x,
+                            0.0f,
                             (this.mazeData.Size.y / 2) * -1.0f + y
                             );
                         break;

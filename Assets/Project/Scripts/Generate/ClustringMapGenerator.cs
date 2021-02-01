@@ -238,6 +238,10 @@ public class ClustringMapGenerator : MonoBehaviour
             yield return new WaitForSeconds(this.span);
         }
 
+        // スタートとゴール位置（暫定で決め打ち）
+        this.cells[0] = CELL_TYPE_START;
+        this.cells[this.cells.Count-1] = CELL_TYPE_GOAL;
+
         Debug.Log("End");
         UnityEngine.SceneManagement.SceneManager.sceneLoaded += MazeSceneLoaded;
         UnityEngine.SceneManagement.SceneManager.LoadScene("scnMaze");
