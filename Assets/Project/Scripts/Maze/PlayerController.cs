@@ -152,16 +152,7 @@ public class PlayerController : MonoBehaviour
             yield return null;
         }
 
-        transform.position = new Vector3(
-                            (this.mazeData.Size.x / 2) * -1.0f + this.nextCellPos.x,
-                            0.0f,
-                            (this.mazeData.Size.y / 2) * -1.0f + this.nextCellPos.y
-                            );
-        this.cellPos = this.nextCellPos;
-        if (this.mazeData.GetCell(this.cellPos) == MazeData.CellType.Goal)
-        {
-            this.goalMessage.enabled = true;
-        }
+        Moved();
         this.moving = null;
     }
     private IEnumerator Turn(float direction)
@@ -179,8 +170,7 @@ public class PlayerController : MonoBehaviour
             yield return null;
         }
 
-        transform.rotation = Quaternion.Euler(new Vector3(0.0f, (float)this.nextDirection * 90.0f, 0.0f));
-        this.direction = this.nextDirection;
+        Turned();
         this.turning = null;
     }
 
@@ -190,13 +180,7 @@ public class PlayerController : MonoBehaviour
 
         StopCoroutine(this.moving);
 
-        transform.position = new Vector3(
-                            (this.mazeData.Size.x / 2) * -1.0f + this.nextCellPos.x,
-                            0.0f,
-                            (this.mazeData.Size.y / 2) * -1.0f + this.nextCellPos.y
-                            );
-        this.cellPos = this.nextCellPos;
-
+        Moved();
         this.moving = null;
     }
     private void CancelTurn()
@@ -205,9 +189,26 @@ public class PlayerController : MonoBehaviour
 
         StopCoroutine(this.turning);
 
+        Turned();
+        this.turning = null;
+    }
+
+    private void Moved()
+    {
+        transform.position = new Vector3(
+                            (this.mazeData.Size.x / 2) * -1.0f + this.nextCellPos.x,
+                            0.0f,
+                            (this.mazeData.Size.y / 2) * -1.0f + this.nextCellPos.y
+                            );
+        this.cellPos = this.nextCellPos;
+        if (this.mazeData.GetCell(this.cellPos) == MazeData.CellType.Goal)
+        {
+            this.goalMessage.enabled = true;
+        }
+    }
+    private void Turned()
+    {
         transform.rotation = Quaternion.Euler(new Vector3(0.0f, (float)this.nextDirection * 90.0f, 0.0f));
         this.direction = this.nextDirection;
-
-        this.turning = null;
     }
 }

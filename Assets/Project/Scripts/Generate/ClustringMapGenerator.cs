@@ -148,14 +148,9 @@ public class ClustringMapGenerator : MonoBehaviour
     }
 
     // Start is called before the first frame update
-    void Start()
+    private void Start()
     {
         StartCoroutine(Generate());
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
     }
 
 
@@ -202,7 +197,7 @@ public class ClustringMapGenerator : MonoBehaviour
     }
 
 
-    IEnumerator Generate()
+    private IEnumerator Generate()
     {
         yield return new WaitForSeconds(2.0f);
 
@@ -247,7 +242,7 @@ public class ClustringMapGenerator : MonoBehaviour
         UnityEngine.SceneManagement.SceneManager.LoadScene("scnMaze");
     }
 
-    IEnumerator DeleteBox(GameObject g)
+    private IEnumerator DeleteBox(GameObject g)
     {
         const float DURATION = 1.0f;
 
