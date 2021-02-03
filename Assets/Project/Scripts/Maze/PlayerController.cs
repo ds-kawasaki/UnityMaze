@@ -24,6 +24,7 @@ public class PlayerController : MonoBehaviour
     private Vector2Int cellPos = Vector2Int.zero;
     private Direction direction = Direction.South;
     private Coroutine moving = null;
+    private Coroutine turning = null;
     private Vector2Int nextCellPos = Vector2Int.zero;
     private Direction nextDirection = Direction.South;
 
@@ -35,9 +36,53 @@ public class PlayerController : MonoBehaviour
         this.goalMessage.enabled = false;
     }
 
+    public void TouchCallback(TouchInfo info)
+    {
+        if (this.goalMessage.enabled)
+        {
+            UnityEngine.SceneManagement.SceneManager.LoadScene("scnTitle");
+        }
+        else
+        {
+            float katamuki = info.screenPoint.x * Screen.height / Screen.width;
+            //Debug.Log(string.Format("Screen: {0} {1}  Touch: {2} {3}  katamuki {4}", Screen.width, Screen.height, info.screenPoint.x, info.screenPoint.y, katamuki));
+            if (info.screenPoint.y > katamuki)
+            {
+                if (info.screenPoint.y > Screen.height - katamuki)
+                {
+                    //  上
+                    //Debug.Log("Up");
+                    MoveForward();
+                }
+                else
+                {
+                    //  左
+                    //Debug.Log("Left");
+                    TurnLeft();
+                }
+            }
+            else
+            {
+                if (info.screenPoint.y > Screen.height - katamuki)
+                {
+                    //  右
+                    //Debug.Log("Right");
+                    TurnRight();
+                }
+                else
+                {
+                    //  下
+                    //Debug.Log("Down");
+                    MoveBack();
+                }
+            }
+        }
+    }
+
     // Start is called before the first frame update
     void Start()
     {
+        TouchInput.Started += TouchCallback;
     }
 
     // Update is called once per frame
@@ -45,33 +90,54 @@ public class PlayerController : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.UpArrow))
         {
-            CancelMove();
-            this.nextCellPos = this.cellPos + this.directionForward[(int)this.direction];
-            if (this.mazeData.GetCell(this.nextCellPos) == MazeData.CellType.Wall) { return; }
-            this.moving = StartCoroutine(Move(1.0f));
+            MoveForward();
         }
         else if (Input.GetKeyDown(KeyCode.DownArrow))
         {
-            CancelMove();
-            this.nextCellPos = this.cellPos + this.directionForward[(int)this.direction] * -1;
-            if (this.mazeData.GetCell(this.nextCellPos) == MazeData.CellType.Wall) { return; }
-            this.moving = StartCoroutine(Move(-1.0f));
+            MoveBack();
         }
         else if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
-            CancelMove();
-            this.nextDirection = (Direction)(((int)this.direction + 4 - 1) % 4);
-            this.moving = StartCoroutine(Rot(-90.0f));
+            TurnLeft();
         }
         else if (Input.GetKeyDown(KeyCode.RightArrow))
         {
-            CancelMove();
-            this.nextDirection = (Direction)(((int)this.direction + 1) % 4);
-            this.moving = StartCoroutine(Rot(90.0f));
+            TurnRight();
         }
     }
 
-    IEnumerator Move(float direction)
+    private void MoveForward()
+    {
+        CancelMove();
+        CancelTurn();
+        this.nextCellPos = this.cellPos + this.directionForward[(int)this.direction];
+        if (this.mazeData.GetCell(this.nextCellPos) == MazeData.CellType.Wall) { return; }
+        this.moving = StartCoroutine(Move(1.0f));
+    }
+    private void MoveBack()
+    {
+        CancelMove();
+        CancelTurn();
+        this.nextCellPos = this.cellPos + this.directionForward[(int)this.direction] * -1;
+        if (this.mazeData.GetCell(this.nextCellPos) == MazeData.CellType.Wall) { return; }
+        this.moving = StartCoroutine(Move(-1.0f));
+    }
+    private void TurnLeft()
+    {
+        CancelMove();
+        CancelTurn();
+        this.nextDirection = (Direction)(((int)this.direction + 4 - 1) % 4);
+        this.turning = StartCoroutine(Turn(-90.0f));
+    }
+    private void TurnRight()
+    {
+        CancelMove();
+        CancelTurn();
+        this.nextDirection = (Direction)(((int)this.direction + 1) % 4);
+        this.turning = StartCoroutine(Turn(90.0f));
+    }
+
+    private IEnumerator Move(float direction)
     {
         const float DURATION = 0.5f;
 
@@ -98,7 +164,7 @@ public class PlayerController : MonoBehaviour
         }
         this.moving = null;
     }
-    IEnumerator Rot(float direction)
+    private IEnumerator Turn(float direction)
     {
         const float DURATION = 0.5f;
 
@@ -115,7 +181,7 @@ public class PlayerController : MonoBehaviour
 
         transform.rotation = Quaternion.Euler(new Vector3(0.0f, (float)this.nextDirection * 90.0f, 0.0f));
         this.direction = this.nextDirection;
-        this.moving = null;
+        this.turning = null;
     }
 
     private void CancelMove()
@@ -129,10 +195,19 @@ public class PlayerController : MonoBehaviour
                             0.0f,
                             (this.mazeData.Size.y / 2) * -1.0f + this.nextCellPos.y
                             );
-        transform.rotation = Quaternion.Euler(new Vector3(0.0f, (float)this.nextDirection * 90.0f, 0.0f));
         this.cellPos = this.nextCellPos;
-        this.direction = this.nextDirection;
 
         this.moving = null;
+    }
+    private void CancelTurn()
+    {
+        if (this.turning == null) { return; }
+
+        StopCoroutine(this.turning);
+
+        transform.rotation = Quaternion.Euler(new Vector3(0.0f, (float)this.nextDirection * 90.0f, 0.0f));
+        this.direction = this.nextDirection;
+
+        this.turning = null;
     }
 }
