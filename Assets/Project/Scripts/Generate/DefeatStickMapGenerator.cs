@@ -24,10 +24,6 @@ public class DefeatStickMapGenerator : MonoBehaviour
     /// 壁升目の状態（最外周の壁を含む）
     /// </summary>
     private int[,] cells;
-    /// <summary>
-    /// 壁インスタンス（最外周の壁は含まない）
-    /// </summary>
-    private List<GameObject> boxes;
 
     private const int CELL_TYPE_YUKA = 0;
     private const int CELL_TYPE_WALL = 1;
@@ -39,7 +35,6 @@ public class DefeatStickMapGenerator : MonoBehaviour
         Init(this.mapCellSize);
 
         // 壁升目の生成
-        this.boxes = new List<GameObject>(this.mapCellSize.x * this.mapCellSize.y);
         for (int y = 0; y < this.mapCellSize.y; ++y)
         {
             for (int x = 0; x < this.mapCellSize.x; ++x)
@@ -53,11 +48,6 @@ public class DefeatStickMapGenerator : MonoBehaviour
                             0.5f,
                             (this.mapCellSize.y / 2) * -1.0f + y
                             );
-                        this.boxes.Add(g);
-                        break;
-
-                    case CELL_TYPE_YUKA:
-                        this.boxes.Add(null);
                         break;
                 }
             }
@@ -166,7 +156,6 @@ public class DefeatStickMapGenerator : MonoBehaviour
             -0.5f,
             (this.mapCellSize.y / 2) * -1.0f + y
             );
-        this.boxes[x + y * this.mapCellSize.x] = g;
 
         float startTime = Time.time;
         while (true)
@@ -181,6 +170,13 @@ public class DefeatStickMapGenerator : MonoBehaviour
 
             yield return null;
         }
+
+        g.transform.position = new Vector3(
+            (this.mapCellSize.x / 2) * -1.0f + x,
+            0.5f,
+            (this.mapCellSize.y / 2) * -1.0f + y
+            );
+        g.transform.localScale = Vector3.one;
     }
 
 
