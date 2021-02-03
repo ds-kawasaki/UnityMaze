@@ -1,6 +1,6 @@
-﻿#if UNITY_EDITOR
+﻿//#if UNITY_EDITOR
 #define IS_EDITOR
-#endif
+//#endif
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
