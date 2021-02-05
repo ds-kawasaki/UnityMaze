@@ -347,6 +347,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 522c79f411822e24097236b5ca3e3ce8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  boxObjPrefab: {fileID: 2559944079222585009, guid: 768440f0e34e23b4891655e295482cdf,
+    type: 3}
+  boxesParentObj: {fileID: 1861849434}
+  span: 0.4
+  mapCellSize: {x: 13, y: 13}
 --- !u!4 &1294757122
 Transform:
   m_ObjectHideFlags: 0
