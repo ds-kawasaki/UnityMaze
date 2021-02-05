@@ -141,10 +141,14 @@ public class WallExtendMapGenerator : MonoBehaviour
                 var directions = CheckDirection(now);
                 if (directions.Count > 0)
                 {
+                    bool canExtend = (this.cells[now.x, now.y] == CELL_TYPE_YUKA);
                     SetWall(now);
-                    yield return new WaitForSeconds(this.span / 2);
+                    if (canExtend)
+                    {
+                        yield return new WaitForSeconds(this.span / 2);
+                    }
 
-                    // 伸ばせる方向からランダムな方向に伸ばす
+                    // 伸ばせる方向からランダムな方向に２升伸ばす
                     var next = now;
                     var isPath = false;
                     switch (directions[rnd.Next(directions.Count)])
