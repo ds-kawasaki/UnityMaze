@@ -506,5 +506,5 @@ MonoBehaviour:
   boxObjPrefab: {fileID: 2559944079222585009, guid: 768440f0e34e23b4891655e295482cdf,
     type: 3}
   boxesParentObj: {fileID: 813410451}
-  span: 0.25
+  span: 0.4
   mapCellSize: {x: 13, y: 13}
