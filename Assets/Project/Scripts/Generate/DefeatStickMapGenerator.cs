@@ -72,6 +72,7 @@ public class DefeatStickMapGenerator : MonoBehaviour
         if (this.mapCellSize.x < 5) { this.mapCellSize.x = 5; }
         if (this.mapCellSize.y < 5) { this.mapCellSize.y = 5; }
 
+        // 最外周を壁にする
         this.cells = new int[this.mapCellSize.x, this.mapCellSize.y];
         for (int y = 0; y < this.mapCellSize.y; ++y)
         {
@@ -87,6 +88,15 @@ public class DefeatStickMapGenerator : MonoBehaviour
                 }
             }
         }
+
+        // 偶数升に棒を立てる 
+        for (int y = 2; y < this.mapCellSize.y - 1; y += 2)
+        {
+            for (int x = 2; x < this.mapCellSize.x - 1; x += 2)
+            {
+                this.cells[x, y] = CELL_TYPE_WALL;
+            }
+        }
     }
 
     private IEnumerator Generate()
@@ -98,12 +108,6 @@ public class DefeatStickMapGenerator : MonoBehaviour
         {
             for (int x = 2; x < this.mapCellSize.x-1; x += 2)
             {
-                // 棒を立てる 
-                this.cells[x, y] = CELL_TYPE_WALL;
-                StartCoroutine(MakeBox(x, y));
-
-                yield return new WaitForSeconds(this.span);
-
                 while (true)
                 {
                     int direction = (y == 2) ? rnd.Next(4) : rnd.Next(3);
@@ -142,6 +146,8 @@ public class DefeatStickMapGenerator : MonoBehaviour
         // スタートとゴール位置（暫定で決め打ち）
         this.cells[1, 1] = CELL_TYPE_START;
         this.cells[this.mapCellSize.x-2, this.mapCellSize.y-2] = CELL_TYPE_GOAL;
+
+        yield return new WaitForSeconds(this.span * 4);
 
         Debug.Log("End");
         UnityEngine.SceneManagement.SceneManager.sceneLoaded += MazeSceneLoaded;

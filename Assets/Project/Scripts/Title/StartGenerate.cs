@@ -15,6 +15,16 @@ public class StartGenerate : MonoBehaviour
         UnityEngine.SceneManagement.SceneManager.LoadScene("scnGenerateDefeatStick");
     }
 
+    public void ClickWallExtend()
+    {
+        UnityEngine.SceneManagement.SceneManager.LoadScene("scnGenerateWallExtend");
+    }
+
+    public void ClickDig()
+    {
+        UnityEngine.SceneManagement.SceneManager.LoadScene("scnGenerateDig");
+    }
+
     public void ClickClustring()
     {
         UnityEngine.SceneManagement.SceneManager.LoadScene("scnGenerateClusting");
