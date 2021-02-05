@@ -1,9 +1,18 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
-public class DefeatStickMapGenerator : MonoBehaviour
+public class WallExtendMapGenerator : MonoBehaviour
 {
+    private enum Direction
+    {
+        Up,
+        Right,
+        Down,
+        Left,
+    }
+
     /// <summary>
     /// 壁のプレハブ 
     /// </summary>
@@ -24,11 +33,20 @@ public class DefeatStickMapGenerator : MonoBehaviour
     /// 壁升目の状態（最外周の壁を含む）
     /// </summary>
     private int[,] cells;
+    /// <summary>
+    /// 現在拡張中の壁情報
+    /// </summary>
+    private Stack<Vector2Int> currentWallCells = new Stack<Vector2Int>();
+    /// <summary>
+    /// 壁拡張を行う開始升の情報
+    /// </summary>
+    private List<Vector2Int> startCells = new List<Vector2Int>();
 
     private const int CELL_TYPE_YUKA = 0;
     private const int CELL_TYPE_WALL = 1;
     private const int CELL_TYPE_START = 2;
     private const int CELL_TYPE_GOAL = 3;
+
 
     private void Awake()
     {
@@ -60,7 +78,6 @@ public class DefeatStickMapGenerator : MonoBehaviour
         StartCoroutine(Generate());
     }
 
-
     private void Init(Vector2Int size)
     {
         this.mapCellSize = size;
@@ -72,31 +89,30 @@ public class DefeatStickMapGenerator : MonoBehaviour
         if (this.mapCellSize.x < 5) { this.mapCellSize.x = 5; }
         if (this.mapCellSize.y < 5) { this.mapCellSize.y = 5; }
 
-        // 最外周を壁にする
         this.cells = new int[this.mapCellSize.x, this.mapCellSize.y];
         for (int y = 0; y < this.mapCellSize.y; ++y)
         {
             for (int x = 0; x < this.mapCellSize.x; ++x)
             {
-                if (x == 0 || y == 0 || x == mapCellSize.x-1 || y == mapCellSize.y-1)
+                if (x == 0 || y == 0 || x == mapCellSize.x - 1 || y == mapCellSize.y - 1)
                 {
                     this.cells[x, y] = CELL_TYPE_WALL;
                 }
                 else
                 {
                     this.cells[x, y] = CELL_TYPE_YUKA;
+
+                    // 外周ではない偶数升を壁伸ばし開始点に登録
+                    if (x % 2 == 0 && y % 2 == 0)
+                    {
+                        this.startCells.Add(new Vector2Int(x, y));
+                    }
                 }
             }
         }
 
-        // 偶数升に棒を立てる 
-        for (int y = 2; y < this.mapCellSize.y - 1; y += 2)
-        {
-            for (int x = 2; x < this.mapCellSize.x - 1; x += 2)
-            {
-                this.cells[x, y] = CELL_TYPE_WALL;
-            }
-        }
+        //  開始点をシャッフル
+        this.startCells = this.startCells.OrderBy(i => System.Guid.NewGuid()).ToList();
     }
 
     private IEnumerator Generate()
@@ -104,48 +120,82 @@ public class DefeatStickMapGenerator : MonoBehaviour
         yield return new WaitForSeconds(2.0f);
 
         var rnd = new System.Random();
-        for (int y = 2; y < this.mapCellSize.y-1; y += 2)
+        Queue<Vector2Int> recurrence = new Queue<Vector2Int>();
+        foreach(var startCell in this.startCells)
         {
-            for (int x = 2; x < this.mapCellSize.x-1; x += 2)
+            // 既に壁の場合はスキップ 
+            if (this.cells[startCell.x, startCell.y] == CELL_TYPE_WALL)
             {
-                while (true)
-                {
-                    int direction = (y == 2) ? rnd.Next(4) : rnd.Next(3);
+                continue;
+            }
 
-                    int wallX = x;
-                    int wallY = y;
-                    switch (direction)
+            this.currentWallCells.Clear();
+
+            recurrence.Clear();
+            recurrence.Enqueue(startCell);
+            while (recurrence.Count > 0)
+            {
+                Vector2Int now = recurrence.Dequeue();
+
+                // 伸ばせる方向の判定 
+                var directions = CheckDirection(now);
+                if (directions.Count > 0)
+                {
+                    SetWall(now);
+                    yield return new WaitForSeconds(this.span / 2);
+
+                    // 伸ばせる方向からランダムな方向に伸ばす
+                    var next = now;
+                    var isPath = false;
+                    switch (directions[rnd.Next(directions.Count)])
                     {
-                        default:
-                        case 0:
-                            ++wallX;
+                        case Direction.Up:
+                            isPath = (this.cells[now.x, now.y - 2] == CELL_TYPE_YUKA);
+                            next.y--; SetWall(next);
+                            yield return new WaitForSeconds(this.span / 2);
+                            next.y--; SetWall(next);
+                            yield return new WaitForSeconds(this.span / 2);
                             break;
-                        case 1:
-                            ++wallY;
+                        case Direction.Down:
+                            isPath = (this.cells[now.x, now.y + 2] == CELL_TYPE_YUKA);
+                            next.y++; SetWall(next);
+                            yield return new WaitForSeconds(this.span / 2);
+                            next.y++; SetWall(next);
+                            yield return new WaitForSeconds(this.span / 2);
                             break;
-                        case 2:
-                            --wallX;
+                        case Direction.Left:
+                            isPath = (this.cells[now.x - 2, now.y] == CELL_TYPE_YUKA);
+                            next.x--; SetWall(next);
+                            yield return new WaitForSeconds(this.span / 2);
+                            next.x--; SetWall(next);
+                            yield return new WaitForSeconds(this.span / 2);
                             break;
-                        case 3:
-                            --wallY;
+                        case Direction.Right:
+                            isPath = (this.cells[now.x + 2, now.y] == CELL_TYPE_YUKA);
+                            next.x++; SetWall(next);
+                            yield return new WaitForSeconds(this.span / 2);
+                            next.x++; SetWall(next);
+                            yield return new WaitForSeconds(this.span / 2);
                             break;
                     }
-
-                    if (this.cells[wallX, wallY] != CELL_TYPE_WALL)
+                    if (isPath)
                     {
-                        this.cells[wallX, wallY] = CELL_TYPE_WALL;
-                        StartCoroutine(MakeBox(wallX, wallY));
-                        break;
+                        // 伸ばした先が床の場合は伸ばし続ける
+                        recurrence.Enqueue(next);
                     }
                 }
-
-                yield return new WaitForSeconds(this.span);
+                else
+                {
+                    // 伸ばせる方向がなくなったら途中から再開
+                    var before = this.currentWallCells.Pop();
+                    recurrence.Enqueue(before);
+                }
             }
         }
 
         // スタートとゴール位置（暫定で決め打ち）
         this.cells[1, 1] = CELL_TYPE_START;
-        this.cells[this.mapCellSize.x-2, this.mapCellSize.y-2] = CELL_TYPE_GOAL;
+        this.cells[this.mapCellSize.x - 2, this.mapCellSize.y - 2] = CELL_TYPE_GOAL;
 
         yield return new WaitForSeconds(this.span * 4);
 
@@ -186,6 +236,46 @@ public class DefeatStickMapGenerator : MonoBehaviour
     }
 
 
+    private void SetWall(Vector2Int cell)
+    {
+        if (this.cells[cell.x, cell.y] == CELL_TYPE_YUKA)
+        {
+            StartCoroutine(MakeBox(cell.x, cell.y));
+        }
+        this.cells[cell.x, cell.y] = CELL_TYPE_WALL;
+        if (cell.x % 2 == 0 && cell.y % 2 == 0)
+        {
+            this.currentWallCells.Push(cell);
+        }
+    }
+    private List<Direction> CheckDirection(Vector2Int cell)
+    {
+        var result = new List<Direction>();
+        if (this.cells[cell.x, cell.y - 1] == CELL_TYPE_YUKA && !IsCurrentWall(cell.x, cell.y - 2))
+        {
+            result.Add(Direction.Up);
+        }
+        if (this.cells[cell.x, cell.y + 1] == CELL_TYPE_YUKA && !IsCurrentWall(cell.x, cell.y + 2))
+        {
+            result.Add(Direction.Down);
+        }
+        if (this.cells[cell.x - 1, cell.y] == CELL_TYPE_YUKA && !IsCurrentWall(cell.x - 2, cell.y))
+        {
+            result.Add(Direction.Left);
+        }
+        if (this.cells[cell.x + 1, cell.y] == CELL_TYPE_YUKA && !IsCurrentWall(cell.x + 2, cell.y))
+        {
+            result.Add(Direction.Right);
+        }
+        return result;
+    }
+    private bool IsCurrentWall(int x, int y)
+    {
+        return this.currentWallCells.Contains(new Vector2Int(x, y));
+    }
+
+
+
     private void MazeSceneLoaded(UnityEngine.SceneManagement.Scene next, UnityEngine.SceneManagement.LoadSceneMode mode)
     {
         var obj = GameObject.FindWithTag("MazeManager");
@@ -195,10 +285,10 @@ public class DefeatStickMapGenerator : MonoBehaviour
             if (mazeMgr != null)
             {
                 //   データ受け渡し 
-                var mazeData = new MazeData(new Vector2Int(this.mapCellSize.x-2, this.mapCellSize.y-2));
-                for (int y = 1; y < this.mapCellSize.y-1; ++y)
+                var mazeData = new MazeData(new Vector2Int(this.mapCellSize.x - 2, this.mapCellSize.y - 2));
+                for (int y = 1; y < this.mapCellSize.y - 1; ++y)
                 {
-                    for (int x = 1; x < this.mapCellSize.x-1; ++x)
+                    for (int x = 1; x < this.mapCellSize.x - 1; ++x)
                     {
                         MazeData.CellType mCell = MazeData.CellType.Yuka;
                         switch (this.cells[x, y])
@@ -220,7 +310,7 @@ public class DefeatStickMapGenerator : MonoBehaviour
                                 break;
                         }
 
-                        mazeData.SetCell(new Vector2Int(x-1, y-1), mCell);
+                        mazeData.SetCell(new Vector2Int(x - 1, y - 1), mCell);
                     }
                 }
 
